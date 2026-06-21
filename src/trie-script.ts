@@ -1,4 +1,8 @@
-import wasm from './wasm.ts';
+import {wasm} from './wasm.ts';
 import UnicodeTrie from './text-unicode-trie.ts';
 
-export const trie = new UnicodeTrie(wasm.instance.exports.script_trie.value);
+export let trie: UnicodeTrie;
+
+export function initTrie() {
+  trie = new UnicodeTrie(wasm.instance.exports.script_trie.value);
+}

@@ -1,7 +1,11 @@
-import wasm from './wasm.ts';
+import {wasm} from './wasm.ts';
 import {onWasmMemoryResized} from './wasm-env.ts';
 
-let heapu32 = new Uint32Array(wasm.instance.exports.memory.buffer);
+export let heapu32: Uint32Array;
+
+export function initTrieHeap() {
+  heapu32 = new Uint32Array(wasm.instance.exports.memory.buffer);
+}
 
 onWasmMemoryResized(() => {
   heapu32 = new Uint32Array(wasm.instance.exports.memory.buffer);

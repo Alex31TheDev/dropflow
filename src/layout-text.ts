@@ -1625,9 +1625,13 @@ function createIfcBuffer(text: string) {
   return allocation;
 }
 
-const hbBuffer = hb.createBuffer();
-hbBuffer.setClusterLevel(1);
-hbBuffer.setFlags(hb.HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT);
+export let hbBuffer: hb.HbBuffer;
+
+export function initLayoutText() {
+  hbBuffer = hb.createBuffer();
+  hbBuffer.setClusterLevel(1);
+  hbBuffer.setFlags(hb.HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT);
+}
 
 const wordCache = new Map<HbFont, Map<string, Int32Array>>();
 let wordCacheSize = 0;

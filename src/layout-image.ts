@@ -183,18 +183,33 @@ export class Image {
     if (url.protocol === 'blob:') return objectStore.get(url.href);
   }
 
-  async load() {
+  load() {
     if (this.status === 'unloaded') {
       try {
         const url = new URL(this.src);
-        this.buffer = this.tryObjectUrl(url) || await environment.resolveUrl(url);
-        this.#onBuffer(this.buffer);
-        this.onLoaded();
-        this.decoded = await environment.createDecodedImage(this);
+        const objUrl = this.tryObjectUrl(url);
+        let p: Promise<ArrayBufferLike>;
+        if (objUrl) {
+          p = Promise.resolve(objUrl);
+        } else {
+          p = environment.resolveUrl(url);
+        }
+        return p.then(buffer => {
+          this.buffer = buffer;
+          this.#onBuffer(this.buffer);
+          this.onLoaded();
+          return environment.createDecodedImage(this);
+        }).then(decoded => {
+          this.decoded = decoded;
+        }).catch(e => {
+          this.onError(e);
+        });
       } catch (e) {
         this.onError(e);
+        return Promise.resolve();
       }
     }
+    return Promise.resolve();
   }
 
   loadSync() {

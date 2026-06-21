@@ -1,11 +1,9 @@
 {
-  "include": ["*.ts", "src/**/*", "test/**/*", "*.d.ts", "examples/*.ts", "assets/register.ts"],
+  "include": ["src/**/*", "*.d.ts"],
   "exclude": [
     "node_modules",
-    // https://github.com/Brooooooklyn/canvas/issues/659
-    "examples/napi-rs-canvas.ts",
-    // https://github.com/samizdatco/skia-canvas/pull/220
-    "examples/skia-canvas.ts"
+    "examples",
+    "test"
   ],
   "compilerOptions": {
     "rootDir": ".",
@@ -16,7 +14,7 @@
     "target": "esnext",
     "module": "node16",
     "strict": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "stripInternal": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,

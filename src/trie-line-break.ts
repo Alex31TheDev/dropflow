@@ -1,5 +1,5 @@
 import UnicodeTrie from './text-unicode-trie.ts';
-import wasm from './wasm.ts';
+import {wasm} from './wasm.ts';
 
 // The following break classes are handled by the pair table
 // (do not delete them, they are checked during trie building)
@@ -51,4 +51,8 @@ export const XX = 42;  // Unknown
 
 // I don't know why the pointer value is stored directly in the .value here.
 // It must be an emscripten weirdness, so watch out in the future
-export const trie = new UnicodeTrie(wasm.instance.exports.line_break_trie.value);
+export let trie: UnicodeTrie;
+
+export function initTrie() {
+  trie = new UnicodeTrie(wasm.instance.exports.line_break_trie.value);
+}

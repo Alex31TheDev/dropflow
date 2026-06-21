@@ -4,19 +4,6 @@ import type {Image} from "./layout-image.ts";
 // !!! NOTE !!! if you change anything below, change the readme too
 export interface Environment {
   /**
-   * Must return a promise of a Uint8Array of dropflow.wasm. Typically this
-   * just does a fetch() or fs.readFile.
-   *
-   * Since dropflow internally depends on WASM using top-level await, if you
-   * want to change the location, you need to do it before importing dropflow.
-   * To do that, import {environment} from 'dropflow/environment.js';
-   *
-   * Many package managers only guarantee the order of imports relative to other
-   * imports, so you should usually call this in a separate module imported
-   * before dropflow. See the README for an example.
-   */
-  wasmLocator(): Promise<Uint8Array>;
-  /**
    * This will get called when a font in flow.fonts transitions to loaded or
    * when an already loaded font is added to flow.fonts. It's intended to be
    * used to add the font to the underlying paint target.
@@ -57,28 +44,18 @@ export interface Environment {
 }
 
 export const defaultEnvironment: Environment = {
-  wasmLocator() {
-    throw new Error(
-      "Wasm location not configured. Import {environment} from " +
-        "'dropflow/environment.js' before importing 'dropflow' and assign " +
-        "an async function that returns a Uint8Array to wasmLocator.",
-    );
-  },
   registerFont() {
     // optional (dropflow can be used for layout only)
   },
-  resolveUrl() {
-    throw new Error(
-      'Invalid build! Your bundler needs to support "exports" in package.json.',
-    );
+  resolveUrl(url) {
+    return Promise.reject(new Error("Network and FS access is disabled: " + url));
   },
-  resolveUrlSync() {
-    throw new Error(
-      'Invalid build! Your bundler needs to support "exports" in package.json.',
-    );
+  resolveUrlSync(url) {
+    throw new Error("Network and FS access is disabled: " + url);
   },
-  async createDecodedImage() {
+  createDecodedImage() {
     // optional (svg doesn't use it)
+    return Promise.resolve();
   },
   destroyDecodedImage() {
     // optional (node-canvas just gc's, but browser needs revokeObjectURL)

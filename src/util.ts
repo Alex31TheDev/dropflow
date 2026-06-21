@@ -84,7 +84,13 @@ const bytes = new Uint8Array(16);
 export function uuid() {
   let uuid = '';
 
-  crypto.getRandomValues(bytes);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
 
   // Set version (4) in the most significant 4 bits of byte 6
   bytes[6] = (bytes[6] & 0x0f) | 0x40;

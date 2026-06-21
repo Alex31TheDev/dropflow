@@ -1,4 +1,4 @@
-import wasm from './wasm.ts';
+import {wasm} from './wasm.ts';
 import {setCtx, onWasmMemoryResized} from './wasm-env.ts';
 
 export interface CanvasContext {
@@ -9,15 +9,15 @@ export interface CanvasContext {
   closePath(): void;
 }
 
-const exports = wasm.instance.exports;
+let exports: any;
 
-// no idea why this isn't in @types/node (also see WebAssembly)
+// no idea why this isn't in @types/node (also see TextDecoder)
 declare const TextDecoder: any;
 
-let heapu8 = new Uint8Array(exports.memory.buffer);
-let heapu32 = new Uint32Array(exports.memory.buffer);
-let heapi32 = new Int32Array(exports.memory.buffer);
-let heapf32 = new Float32Array(exports.memory.buffer);
+export let heapu8: Uint8Array;
+export let heapu32: Uint32Array;
+export let heapi32: Int32Array;
+export let heapf32: Float32Array;
 
 onWasmMemoryResized(() => {
   heapu8 = new Uint8Array(exports.memory.buffer);
@@ -30,7 +30,24 @@ const utf8Decoder = new TextDecoder('utf8');
 const utf16Decoder = new TextDecoder('utf-16');
 
 const HB_MEMORY_MODE_WRITABLE = 2;
-const bytes4 = exports.malloc(4);
+export let bytes4: number;
+const fontNameBufferSize = 2048;
+export let fontNameBuffer: number;
+export let langPtr: number;
+const nameBufferSize = 256;
+export let nameBuffer: number;
+
+export function initHarfbuzz() {
+  exports = wasm.instance.exports;
+  heapu8 = new Uint8Array(exports.memory.buffer);
+  heapu32 = new Uint32Array(exports.memory.buffer);
+  heapi32 = new Int32Array(exports.memory.buffer);
+  heapf32 = new Float32Array(exports.memory.buffer);
+  bytes4 = exports.malloc(4);
+  fontNameBuffer = exports.malloc(fontNameBufferSize);
+  langPtr = exports.malloc(3);
+  nameBuffer = exports.malloc(nameBufferSize);
+}
 
 export function hb_tag(s: string) {
   return (
@@ -164,8 +181,7 @@ export function createBlob(blob: Uint8Array) {
   );
 }
 
-const fontNameBufferSize = 2048;
-const fontNameBuffer = exports.malloc(fontNameBufferSize); // permanently allocated
+// fontNameBuffer is initialized dynamically in initHarfbuzz
 
 function createAsciiString(text: string) {
   var ptr = exports.malloc(text.length + 1);
@@ -435,8 +451,7 @@ export function createFace(blob: HbBlob, index: number) {
   return new HbFace(exports.hb_face_create(blob.ptr, index));
 }
 
-const nameBufferSize = 256; // should be enough for most glyphs
-const nameBuffer = exports.malloc(nameBufferSize); // permanently allocated
+// nameBuffer is permanently allocated inside initHarfbuzz
 
 export class HbFont {
   ptr: number;
@@ -537,8 +552,7 @@ function createJsString(text: string) {
     free: function () { exports.free(ptr); }
   };
 }
-
-const langPtr = exports.malloc(3);
+// langPtr is initialized dynamically in initHarfbuzz
 
 // hbjs_extract_glyphs
 export const G_ID = 0;

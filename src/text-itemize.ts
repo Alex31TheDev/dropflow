@@ -1,4 +1,4 @@
-import wasm from './wasm.ts';
+import {wasm} from './wasm.ts';
 import {onWasmMemoryResized} from './wasm-env.ts';
 import {codeToName} from '../gen/script-names.ts';
 import {IfcInline, Inline} from './layout-flow.ts';
@@ -10,24 +10,20 @@ import * as ScriptTrie from './trie-script.ts';
 
 import type {InlineLevel} from './layout-flow.ts';
 
-const {
-  // SheenBidi
-  SBAlgorithmCreate,
-  SBAlgorithmRelease,
-  SBAlgorithmGetParagraphBoundary,
-  SBAlgorithmCreateParagraph,
-  SBParagraphRelease,
-  SBParagraphGetLevelsPtr,
-  // emoji-segmenter
-  emoji_scan,
-  malloc,
-  free,
-  memory
-} = wasm.instance.exports;
+let SBAlgorithmCreate: any;
+let SBAlgorithmRelease: any;
+let SBAlgorithmGetParagraphBoundary: any;
+let SBAlgorithmCreateParagraph: any;
+let SBParagraphRelease: any;
+let SBParagraphGetLevelsPtr: any;
+let emoji_scan: any;
+let malloc: any;
+let free: any;
+let memory: any;
 
-let heapu32 = new Uint32Array(memory.buffer);
-let heapu8 = new Uint8Array(memory.buffer);
-let heapu16 = new Uint16Array(memory.buffer);
+let heapu32: Uint32Array;
+let heapu8: Uint8Array;
+let heapu16: Uint16Array;
 
 onWasmMemoryResized(() => {
   heapu32 = new Uint32Array(memory.buffer);
@@ -35,12 +31,39 @@ onWasmMemoryResized(() => {
   heapu16 = new Uint16Array(memory.buffer);
 });
 
-const seqPtr = malloc(12); // sizeof(SBCodepointSequence)
-const seqPtr32 = seqPtr >>> 2; // sizeof(SBCodepointSequence)
-const paraLenPtr = malloc(4 /* sizeof(SBUInteger) */);
-const paraLenPtr32 = paraLenPtr >>> 2;
-const paraSepPtr = malloc(4 /* sizeof(SBUInteger) */);
-const paraSepPtr32 = paraSepPtr >>> 2;
+export let seqPtr: number;
+export let seqPtr32: number;
+export let paraLenPtr: number;
+export let paraLenPtr32: number;
+export let paraSepPtr: number;
+export let paraSepPtr32: number;
+export let isEmojiPtr: number;
+
+export function initItemize() {
+  const exports = wasm.instance.exports;
+  SBAlgorithmCreate = exports.SBAlgorithmCreate;
+  SBAlgorithmRelease = exports.SBAlgorithmRelease;
+  SBAlgorithmGetParagraphBoundary = exports.SBAlgorithmGetParagraphBoundary;
+  SBAlgorithmCreateParagraph = exports.SBAlgorithmCreateParagraph;
+  SBParagraphRelease = exports.SBParagraphRelease;
+  SBParagraphGetLevelsPtr = exports.SBParagraphGetLevelsPtr;
+  emoji_scan = exports.emoji_scan;
+  malloc = exports.malloc;
+  free = exports.free;
+  memory = exports.memory;
+
+  heapu32 = new Uint32Array(memory.buffer);
+  heapu8 = new Uint8Array(memory.buffer);
+  heapu16 = new Uint16Array(memory.buffer);
+
+  seqPtr = malloc(12);
+  seqPtr32 = seqPtr >>> 2;
+  paraLenPtr = malloc(4);
+  paraLenPtr32 = paraLenPtr >>> 2;
+  paraSepPtr = malloc(4);
+  paraSepPtr32 = paraSepPtr >>> 2;
+  isEmojiPtr = malloc(1);
+}
 
 interface BidiIteratorState {
   /* output */
@@ -240,7 +263,7 @@ export function createEmojiIteratorState(
   };
 }
 
-const isEmojiPtr = malloc(1);
+// isEmojiPtr is initialized dynamically in initItemize
 
 export function emojiIteratorNext(state: EmojiIteratorState) {
   if (state.done) return;

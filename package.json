@@ -6,7 +6,6 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/mocha": "^8.0.3",
     "@types/node": "^20.17.10",
-    "canvas": "^3.1.0",
     "chai": "^4.2.0",
     "codemirror": "^6.0.1",
     "mitata": "^1.0.21",
@@ -14,7 +13,9 @@
     "peggy": "^2.0.1",
     "punycode": "^2.1.1",
     "typescript": "^5.8.3",
-    "vite": "^7.0.6"
+    "vite": "^7.0.6",
+    "webpack": "^5.107.2",
+    "webpack-cli": "^7.0.3"
   },
   "name": "dropflow",
   "version": "0.6.1",
@@ -28,12 +29,12 @@
   ],
   "exports": {
     ".": {
-      "typescript": "./src/api.ts",
-      "default": "./dist/src/api.js"
+      "types": "./src/api-parse.ts",
+      "default": "./dist/index.cjs"
     },
     "./parse.js": {
-      "typescript": "./src/api-parse.ts",
-      "default": "./dist/src/api-parse.js"
+      "types": "./src/api-parse.ts",
+      "default": "./dist/index.cjs"
     },
     "./register-noto-fonts.js": {
       "typescript": "./src/api-register-noto-fonts.ts",
@@ -46,16 +47,6 @@
     "./dropflow.wasm": "./dist/dropflow.wasm"
   },
   "imports": {
-    "#register-default-environment": {
-      "browser": {
-        "typescript": "./src/environment-browser.ts",
-        "default": "./dist/src/environment-browser.js"
-      },
-      "default": {
-        "typescript": "./src/environment-node.ts",
-        "default": "./dist/src/environment-node.js"
-      }
-    },
     "#assets/*": "./assets/*"
   },
   "scripts": {
@@ -64,7 +55,8 @@
     "test:dist": "mocha dist/test/ci.js",
     "tsc": "tsc",
     "playground": "vite -c site/vite.config.js",
-    "buildcssparser": "peggy --format es src/parse-css.pegjs"
+    "buildcssparser": "peggy --format es src/parse-css.pegjs",
+    "build": "tsc && webpack --config webpack.config.cjs"
   },
   "keywords": [
     "css2",

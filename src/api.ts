@@ -1,18 +1,25 @@
-import '#register-default-environment';
 import {HTMLElement, TextNode} from './dom.ts';
-import {DeclaredStyle, getOriginStyle, computeElementStyle} from './style.ts';
+import {DeclaredStyle, getOriginStyle, computeElementStyle, createDeclaredStyle as style, setOriginStyle} from './style.ts';
 import {fonts, FontFace, createFaceFromTables, createFaceFromTablesSync, onLoadWalkerTextNodeForFonts, onLoadWalkerElementForFonts} from './text-font.ts';
 import {generateBlockContainer, layoutBlockLevelBox, BlockContainer} from './layout-flow.ts';
 import HtmlPaintBackend from './paint-html.ts';
 import SvgPaintBackend from './paint-svg.ts';
-import CanvasPaintBackend from './paint-canvas.ts';
+import {initWasm} from './wasm.ts';
+import {initTrieHeap} from './text-unicode-trie.ts';
+import {initTrie as initScriptTrie} from './trie-script.ts';
+import {initTrie as initLineBreakTrie} from './trie-line-break.ts';
+import {initTrie as initGraphemeBreakTrie} from './trie-grapheme-break.ts';
+import {initTrie as initEmojiTrie} from './trie-emoji.ts';
+import {initTrie as initDerivedCorePropertiesTrie} from './trie-derived-core-properties.ts';
+import {initHarfbuzz} from './text-harfbuzz.ts';
+import {initItemize} from './text-itemize.ts';
+import {environment} from './environment.ts';
+import {clearWordCache, initLayoutText} from './layout-text.ts';
 
 import paint from './paint.ts';
 import {BoxArea, prelayout, postlayout} from './layout-box.ts';
 import {onLoadWalkerElementForImage} from './layout-image.ts';
 import {id, uuid} from './util.ts';
-
-import type {Canvas, CanvasRenderingContext2D} from './paint-canvas.ts';
 
 import type {Style} from './style.ts';
 import type {Image} from './layout-image.ts';
@@ -23,7 +30,7 @@ export type {BlockContainer, DeclaredStyle};
 
 export type {HTMLElement};
 
-export {createDeclaredStyle as style, setOriginStyle} from './style.ts';
+export {style, setOriginStyle};
 
 export {fonts, FontFace, createFaceFromTables, createFaceFromTablesSync};
 
@@ -89,27 +96,6 @@ export function paintToSvgElements(root: BlockContainer): string {
 
 export {eachRegisteredFont} from './text-font.ts';
 
-export function paintToCanvas(root: BlockContainer, ctx: CanvasRenderingContext2D): void {
-  const backend = new CanvasPaintBackend(ctx);
-  paint(root, backend);
-}
-
-export async function renderToCanvasContext(
-  rootElement: HTMLElement,
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number
-): Promise<void> {
-  await load(rootElement);
-  const root = generate(rootElement);
-  layout(root, width, height);
-  paintToCanvas(root, ctx);
-}
-
-export async function renderToCanvas(rootElement: HTMLElement, canvas: Canvas) {
-  const ctx = canvas.getContext('2d');
-  await renderToCanvasContext(rootElement, ctx, canvas.width, canvas.height);
-}
 
 type HsChild = HTMLElement | string;
 
@@ -276,7 +262,7 @@ function loadWalker(root: HTMLElement, ctx: LoadWalkerContext) {
   }
 }
 
-export async function load(root: HTMLElement): Promise<LoadableResource[]> {
+export function load(root: HTMLElement): Promise<LoadableResource[]> {
   const promises: Promise<any>[] = [];
   const resources: LoadableResource[] = [];
 
@@ -292,9 +278,9 @@ export async function load(root: HTMLElement): Promise<LoadableResource[]> {
     }
   });
 
-  await Promise.all(promises);
-
-  return resources;
+  return Promise.all(promises).then(() => {
+    return resources;
+  });
 }
 
 export function loadSync(root: HTMLElement): LoadableResource[] {
@@ -329,3 +315,42 @@ export function revokeObjectURL(url: string): void {
 }
 
 export {clearWordCache} from './layout-text.ts';
+
+export default function createDropflow(wasmBinary: ArrayBuffer | Uint8Array) {
+  return initWasm(wasmBinary).then(() => {
+    initTrieHeap();
+    initScriptTrie();
+    initLineBreakTrie();
+    initGraphemeBreakTrie();
+    initEmojiTrie();
+    initDerivedCorePropertiesTrie();
+    initHarfbuzz();
+    initItemize();
+    initLayoutText();
+
+    return {
+      paint,
+      style,
+      setOriginStyle,
+      generate,
+      layout,
+      paintToHtml,
+      paintToSvg,
+      paintToSvgElements,
+      dom,
+      h,
+      t,
+      load,
+      loadSync,
+      environment,
+      fonts,
+      FontFace,
+      createFaceFromTables,
+      createFaceFromTablesSync,
+      clearWordCache,
+      objectStore,
+      createObjectURL,
+      revokeObjectURL
+    };
+  });
+}

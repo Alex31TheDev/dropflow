@@ -1,11 +1,47 @@
+import createDropflowImpl from './api.ts';
 export * from './api.ts';
 import {Parser, isWhitespace} from './parse-html.ts';
 import {TextNode, HTMLElement} from './dom.ts';
 import {parse as StyleParser} from './parse-css.js';
 import {EMPTY_STYLE, computeElementStyle, createDeclaredStyle} from './style.ts';
 import {id} from './util.ts';
+import {
+  style,
+  setOriginStyle,
+  fonts,
+  FontFace,
+  createFaceFromTables,
+  createFaceFromTablesSync,
+  dom,
+  h,
+  t,
+  environment
+} from './api.ts';
 
-export default function parse(str: string): HTMLElement {
+export default function createDropflow(wasmBinary: ArrayBuffer | Uint8Array) {
+  return createDropflowImpl(wasmBinary).then(api => {
+    return {
+      ...api,
+      parse
+    };
+  });
+}
+
+createDropflow.createDropflow = createDropflow;
+createDropflow.style = style;
+createDropflow.setOriginStyle = setOriginStyle;
+createDropflow.fonts = fonts;
+createDropflow.FontFace = FontFace;
+createDropflow.createFaceFromTables = createFaceFromTables;
+createDropflow.createFaceFromTablesSync = createFaceFromTablesSync;
+createDropflow.dom = dom;
+createDropflow.h = h;
+createDropflow.t = t;
+createDropflow.environment = environment;
+createDropflow.parse = parse;
+
+
+export function parse(str: string): HTMLElement {
   const parents: HTMLElement[] = [];
   let rootElement: HTMLElement | null = null;
   // afterHtml is like "after after body"; inHtml is like "in body"

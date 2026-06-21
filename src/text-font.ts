@@ -1,6 +1,6 @@
 import * as hb from './text-harfbuzz.ts';
 import langCoverage from '../gen/lang-script-coverage.ts';
-import wasm from './wasm.ts';
+import {wasm} from './wasm.ts';
 import {HbSet, hb_tag, HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX} from './text-harfbuzz.ts';
 import {environment} from './environment.ts';
 import {nameToCode, tagToCode} from '../gen/script-names.ts';
