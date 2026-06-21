@@ -110,6 +110,50 @@ export function loggableText(text: string): string {
   return text.replace(/\n/g, '⏎').replace(/\t/g, '␉');
 }
 
+export class URL {
+  href: string;
+
+  constructor(url: string | { href: string }, base?: string | { href: string }) {
+    if (typeof url === 'object' && url !== null && 'href' in url) {
+      this.href = url.href;
+    } else {
+      let href = String(url);
+      if (base) {
+        let baseStr = typeof base === 'object' && base !== null && 'href' in base ? base.href : String(base);
+        if (!href.includes('://') && !href.startsWith('/') && baseStr.includes('/')) {
+          const lastSlash = baseStr.lastIndexOf('/');
+          href = baseStr.slice(0, lastSlash + 1) + href;
+        }
+      }
+      this.href = href;
+    }
+  }
+
+  get protocol(): string {
+    const match = this.href.match(/^[^:]+:/);
+    return match ? match[0] : '';
+  }
+
+  get pathname(): string {
+    try {
+      const parts = this.href.split('://');
+      const pathPart = parts.length > 1 ? parts[1] : parts[0];
+      const slashIndex = pathPart.indexOf('/');
+      return slashIndex !== -1 ? pathPart.slice(slashIndex) : '/';
+    } catch {
+      return this.href;
+    }
+  }
+
+  toString(): string {
+    return this.href;
+  }
+
+  toJSON(): string {
+    return this.href;
+  }
+}
+
 export function basename(url: URL) {
   return url.href.slice(url.href.lastIndexOf('/') + 1);
 }

@@ -1,5 +1,6 @@
 import type {LoadedFontFace} from "./text-font.ts";
 import type {Image} from "./layout-image.ts";
+import {URL} from "./util.ts";
 
 // !!! NOTE !!! if you change anything below, change the readme too
 export interface Environment {

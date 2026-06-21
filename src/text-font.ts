@@ -4,7 +4,7 @@ import {wasm} from './wasm.ts';
 import {HbSet, hb_tag, HB_OT_TAG_GSUB, HB_OT_TAG_GPOS, HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX} from './text-harfbuzz.ts';
 import {environment} from './environment.ts';
 import {nameToCode, tagToCode} from '../gen/script-names.ts';
-import {Deferred} from './util.ts';
+import {Deferred, URL} from './util.ts';
 
 import type {HbFace, HbFont} from './text-harfbuzz.ts';
 import type {Style, FontWeight, FontStyle, FontVariant, FontStretch} from './style.ts';
@@ -190,8 +190,11 @@ export class LoadedFontFace {
     this.languages = 'languages' in desc ? desc.languages : this.getLanguages();
     this.uniqueFamily = `${this.family}_${String(uniqueFamily++).padStart(4, '0')}`;
 
-    if (!url) url = this._createUrl(this);
-    this.url = url;
+    if (!url) {
+      this.url = this._createUrl(this);
+    } else {
+      this.url = url;
+    }
 
     this.spaceFeatures = UninitializedSpaceFeatures;
     this.defaultSubSpaceFeatures = new Uint32Array(Math.ceil(nameToCode.size / 32));

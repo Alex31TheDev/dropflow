@@ -1,6 +1,7 @@
 import {environment} from './environment.ts';
 import {HTMLElement} from './dom.ts';
 import {objectStore} from './api.ts';
+import {URL} from './util.ts';
 
 import type {LoadWalkerContext} from './api.ts';
 

@@ -23,6 +23,7 @@ import {id, uuid} from './util.ts';
 
 import type {Style} from './style.ts';
 import type {Image} from './layout-image.ts';
+import {URL} from './util.ts';
 
 export {environment} from './environment.ts';
 
@@ -30,7 +31,7 @@ export type {BlockContainer, DeclaredStyle};
 
 export type {HTMLElement};
 
-export {style, setOriginStyle};
+export {style, setOriginStyle, URL};
 
 export {fonts, FontFace, createFaceFromTables, createFaceFromTablesSync};
 
